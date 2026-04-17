@@ -71,6 +71,7 @@ export async function makeSearchRequest(
         headers: {
           ...API_HEADERS,
           'Content-Type': 'application/json',
+          'X-Atlassian-Token': 'no-check',
           'Authorization': createAuthHeader(
             connectionSettings.username,
             connectionSettings.APIToken,

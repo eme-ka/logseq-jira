@@ -60,26 +60,18 @@ export async function makeSearchRequest(
   connectionSettings: JiraConnectionSettings
 ): Promise<SearchResult> {
   try {
-    // The new /search/jql endpoint only exists under API v3
-    const jqlQueryUrl = `${constructRestApiUrl(connectionSettings.baseURL, "3")}/search/jql`;
+    const jqlQueryUrl = `${constructRestApiUrl(connectionSettings.baseURL, "3")}/search/jql?jql=${encodeURIComponent(jqlQuery)}`;
     
-    const response = await axios.post<SearchResult>(jqlQueryUrl, 
-      {
-        jql: jqlQuery,
-      },
-      {
-        headers: {
-          ...API_HEADERS,
-          'Content-Type': 'application/json',
-          'X-Atlassian-Token': 'no-check',
-          'Authorization': createAuthHeader(
-            connectionSettings.username,
-            connectionSettings.APIToken,
-            connectionSettings.authType as AuthType
-          )
-        }
+    const response = await axios.get<SearchResult>(jqlQueryUrl, {
+      headers: {
+        ...API_HEADERS,
+        'Authorization': createAuthHeader(
+          connectionSettings.username,
+          connectionSettings.APIToken,
+          connectionSettings.authType as AuthType
+        )
       }
-    );
+    });
 
     return response.data;
   } catch (error) {

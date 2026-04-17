@@ -47,6 +47,9 @@ export const getIssueUrl = (issue: Issue, domain: string): string =>
 
 /**
  * Makes a JQL search request to the Jira API
+ * Uses the new POST /rest/api/3/search/jql endpoint
+ * (The old GET /rest/api/{version}/search was deprecated and returns 410)
+ * 
  * @param jqlQuery - JQL query string
  * @param connectionSettings - Jira connection settings
  * @returns Promise resolving to search results
@@ -57,18 +60,25 @@ export async function makeSearchRequest(
   connectionSettings: JiraConnectionSettings
 ): Promise<SearchResult> {
   try {
-    const jqlQueryUrl = `${constructRestApiUrl(connectionSettings.baseURL, connectionSettings.APIVersion)}/search?jql=${encodeURIComponent(jqlQuery)}`;
+    // The new /search/jql endpoint only exists under API v3
+    const jqlQueryUrl = `${constructRestApiUrl(connectionSettings.baseURL, "3")}/search/jql`;
     
-    const response = await axios.get<SearchResult>(jqlQueryUrl, {
-      headers: {
-        ...API_HEADERS,
-        'Authorization': createAuthHeader(
-          connectionSettings.username,
-          connectionSettings.APIToken,
-          connectionSettings.authType as AuthType
-        )
+    const response = await axios.post<SearchResult>(jqlQueryUrl, 
+      {
+        jql: jqlQuery,
+      },
+      {
+        headers: {
+          ...API_HEADERS,
+          'Content-Type': 'application/json',
+          'Authorization': createAuthHeader(
+            connectionSettings.username,
+            connectionSettings.APIToken,
+            connectionSettings.authType as AuthType
+          )
+        }
       }
-    });
+    );
 
     return response.data;
   } catch (error) {
